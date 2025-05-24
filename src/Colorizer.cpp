@@ -251,13 +251,6 @@ void Colorizer::beginModel(Node* item) {
 
         Color* color = item->model.colors.first;
         while (color) {
-            printf("Item Color - Kind: %u, Index: %u, RGB: (%u, %u, %u)\n",
-                color->colorKind,
-                color->colorIndex,
-                color->rgb[0],
-                color->rgb[1],
-                color->rgb[2]);
-
             std::string cname = "Color_" + std::to_string(color->colorIndex);
             uint64_t colorName = uint64_t(mStore->strings.intern(cname.c_str(), cname.c_str() + cname.size()));
 
