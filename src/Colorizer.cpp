@@ -1,6 +1,7 @@
 #include <cassert>
 #include "Store.h"
 #include "Colorizer.h"
+#include <string>
 
 
 Colorizer::Colorizer(Logger logger, const char* colorAttribute) :
@@ -11,6 +12,7 @@ Colorizer::Colorizer(Logger logger, const char* colorAttribute) :
 
 void Colorizer::init(Store& store)
 {
+  mStore = &store;
   colorNameByMaterialId.insert(1, uint64_t(store.strings.intern("Black")));
   colorNameByMaterialId.insert(2, uint64_t(store.strings.intern("Red")));
   colorNameByMaterialId.insert(3, uint64_t(store.strings.intern("Orange")));
@@ -241,6 +243,36 @@ void Colorizer::init(Store& store)
 
 }
 
+void Colorizer::beginModel(Node* item) {
+
+    if (item->kind == Node::Kind::Model) {
+        modelColorByMaterialId.clear();
+        modelColorNameByMaterialId.clear();
+
+        Color* color = item->model.colors.first;
+        while (color) {
+            printf("Item Color - Kind: %u, Index: %u, RGB: (%u, %u, %u)\n",
+                color->colorKind,
+                color->colorIndex,
+                color->rgb[0],
+                color->rgb[1],
+                color->rgb[2]);
+
+            std::string cname = "Color_" + std::to_string(color->colorIndex);
+            uint64_t colorName = uint64_t(mStore->strings.intern(cname.c_str(), cname.c_str() + cname.size()));
+
+            uint32_t t_color = (uint32_t(color->rgb[0]) << 16) |
+                (uint32_t(color->rgb[1]) << 8) |
+                (uint32_t(color->rgb[2]));
+            modelColorByMaterialId.insert(color->colorIndex, t_color);
+            modelColorNameByMaterialId.insert(color->colorIndex, colorName);
+
+            color = color->next;
+
+        }
+    }
+}
+
 void Colorizer::beginGroup(Node* group)
 {
   StackItem item;
@@ -255,11 +287,12 @@ void Colorizer::beginGroup(Node* group)
 
   if (!item.override) {
     uint64_t colorName;
+    uint64_t color;
     if (group->group.material == 0) {
       colorName = uint64_t(defaultName);
     }
     else if (colorNameByMaterialId.get(colorName, group->group.material)) {
-      uint64_t color;
+
       if (colorByName.get(color, colorName)) {
         item.colorName = (const char*)colorName;
         item.color = uint32_t(color);
@@ -268,6 +301,12 @@ void Colorizer::beginGroup(Node* group)
         naggedName.insert(colorName, 1);
         logger(1, "Unrecognized color name %s", (const char*)colorName);
       }
+    }
+    else if (modelColorByMaterialId.get(color,group->group.material)) {
+        if (modelColorNameByMaterialId.get(colorName, group->group.material)) {
+            item.colorName = (const char*)colorName;
+            item.color = (uint32_t)color;
+        }
     }
     else if (!naggedMaterialId.get(group->group.material)) {
       naggedMaterialId.insert(group->group.material, 1);

@@ -11,6 +11,8 @@ public:
 
   void init(Store& store) override;
 
+  void beginModel(Node* group) override;
+
   void beginGroup(Node* group) override;
 
   void EndGroup() override;
@@ -18,7 +20,6 @@ public:
   void geometry(Geometry* geometry) override;
 
   void attribute(const char* key, const char* val) override;
-
 private:
   struct StackItem
   {
@@ -37,4 +38,8 @@ private:
   uint32_t stack_p = 0;
   const char* defaultName = nullptr;
   const char* colorAttribute = nullptr;
+
+  Store* mStore = nullptr;
+  Map modelColorByMaterialId;
+  Map modelColorNameByMaterialId;
 };
