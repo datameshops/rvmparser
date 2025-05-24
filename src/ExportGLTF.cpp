@@ -294,7 +294,7 @@ namespace {
     rj::Value rjPbrMetallicRoughness(rj::kObjectType);
     rjPbrMetallicRoughness.AddMember("baseColorFactor", rjColor, alloc);
     rjPbrMetallicRoughness.AddMember("metallicFactor", 0.5f, alloc);
-    rjPbrMetallicRoughness.AddMember("roughnessFactor", 0.5f, alloc);
+    rjPbrMetallicRoughness.AddMember("roughnessFactor", 0.7f, alloc);
 
     rj::Value material(rj::kObjectType);
     if (geo->colorName) {
