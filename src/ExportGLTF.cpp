@@ -17,6 +17,7 @@
 
 #include "Store.h"
 #include "LinAlgOps.h"
+#include <filesystem>
 
 #define RVMPARSER_GLTF_PRETTY_PRINT (0)
 
@@ -694,12 +695,16 @@ namespace {
 
     switch (node->kind) {
     case Node::Kind::File:
-      if (node->file.path) {
-        rjNode.AddMember("name", rj::Value(node->file.path, alloc), alloc);
-      }
-      if (includeContent) {
-        addAttributes(ctx, model, rjNode, node);
-      }
+        if (node->file.path) {
+            //rjNode.AddMember("name", rj::Value(node->file.path, alloc), alloc);
+            std::string filename = std::filesystem::path(node->file.path).filename().string();
+            rjNode.AddMember("name", rj::Value(filename.c_str(), alloc), alloc);
+
+        }
+
+        if (includeContent) {
+            addAttributes(ctx, model, rjNode, node);
+        }
       break;
 
     case Node::Kind::Model:
