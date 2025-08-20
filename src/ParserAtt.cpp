@@ -81,8 +81,8 @@ namespace {
   bool handleEnd(Context* ctx)
   {
     if (ctx->stack_p == 0) {
-      ctx->logger(2, "@%d: More END-tags and than NEW-tags.", ctx->line);
-      return false;
+      ctx->logger(1, "@%d: Extra END without matching NEW (ignored)", ctx->line);
+      return true; // tolerate stray END
     }
     //ctx->logger(0, "@%d: end", ctx->line);
     ctx->stack_p--;
@@ -91,9 +91,12 @@ namespace {
 
   bool handleAttribute(Context* ctx, const char* key_a, const char* key_b, const char* value_a, const char* value_b)
   {
-    assert(ctx->stack_p);
+    if (ctx->stack_p == 0) {
+      ctx->logger(1, "@%d: Attribute outside any group (ignored): '%.*s'", ctx->line, (int)(key_b - key_a), key_a);
+      return true; // tolerate stray attributes at top-level
+    }
     auto * grp = ctx->stack[ctx->stack_p - 1].group;
-    if (grp == nullptr) return true; // Inside skipped group like headerinfo
+    if (grp == nullptr) return true; // Inside skipped or headerinfo group
 
     auto * key = ctx->store->strings.intern(key_a, key_b);
     auto * att = ctx->store->getAttribute(grp, key);
